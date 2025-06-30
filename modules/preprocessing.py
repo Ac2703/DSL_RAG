@@ -18,15 +18,10 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 nltk.download("punkt")
 
-
-# Initialize Qdrant client
-qdrant = QdrantClient(host="localhost", port=6333)
-
-
 class Chunker:
-    def __init__(self, course_dict, chunk_size=500, chunk_overlap=50):
-        self.course_dict = course_dict
-        self.url = course_dict.get("syllabus", "")
+    def __init__(self, chunk_size=500, chunk_overlap=50):
+        self.course_dict = ""
+        self.url = ""
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
@@ -47,7 +42,7 @@ class Chunker:
         # Attach metadata safely
         for d in docs:
             d.metadata["source"] = self.url
-            d.metadata["course_no"] = self.course_dict.get("course_num", "")
+            d.metadata["course_num"] = self.course_dict.get("course_num", "")
             d.metadata["course_sem"] = self.course_dict.get("course_sem", "")
             d.metadata["course_name"] = self.course_dict.get("course_name", "")
         return docs
@@ -65,7 +60,7 @@ class Chunker:
             # Create a single Document with metadata
             doc = Document(page_content=clean_text, metadata={
                 "source": self.url,
-                "course_no": self.course_dict.get("course_num", ""),
+                "course_num": self.course_dict.get("course_num", ""),
                 "course_sem": self.course_dict.get("course_sem", ""),
                 "course_name": self.course_dict.get("course_name", ""),
             })
@@ -102,13 +97,13 @@ class Chunker:
 
         return all_chunks
 
-    def save_chunks_to_csv(self, chunks, filename="output.csv"):
+    def save_chunks_to_csv(self, chunks, filename="./data/course_chunks.csv"):
         rows = []
         for chunk in chunks:
             rows.append({
                 "text": chunk.page_content,
                 "source": chunk.metadata.get("source", ""),
-                "course_no": chunk.metadata.get("course_no", ""),
+                "course_num": chunk.metadata.get("course_num", ""),
                 "course_sem": chunk.metadata.get("course_sem", ""),
                 "course_name": chunk.metadata.get("course_name", ""),
             })
@@ -120,9 +115,15 @@ class Chunker:
 
         df.to_csv(filename, index=False, mode='a', header=write_header)
         
-        print(f"Saved {len(chunks)} chunks to {filename}")
+        print(f">>>> Saved {len(chunks)} chunks")
 
-    def process(self):
+    def process(self, course_dict):
+        print(f"\n> Chunking {course_dict.get('course_num')},{course_dict.get('course_sem')}")
+
+        
+        self.course_dict = course_dict
+        self.url = course_dict.get("syllabus", "")
+
         if self.url.lower().endswith(".pdf"):
             pdf_path = self.download_pdf()
             if not pdf_path:
@@ -138,7 +139,7 @@ class Chunker:
             return []
 
         chunks = self.chunk_documents(docs)
-        print(f"Created {len(chunks)} chunks")
+        print(f">>>> Created {len(chunks)} chunks")
         return chunks
 
 

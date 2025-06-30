@@ -11,6 +11,9 @@ class WebScraper:
         self.course_dict_list = []
     
     def scrape_main_page(self):
+
+        print(" > beginning to scrape main page")
+
         self.page = requests.get(self.main_url,verify=False)
         main_page = BeautifulSoup(self.page.text, 'html.parser')
 
@@ -22,10 +25,12 @@ class WebScraper:
             
             # COURSE TITLE IS SET BY PARAGRAPHs
             course_title = re.split((r'\.|(?<=\))'), para_text)[0] # Split by "." and ")", but if it's a ")", keep it
+            print(f"\n>>> going through {course_title}")
             
             # go through each link in each para
             links = paragraph.find_all('a')
             for link in links:
+                print(f">>>>>> entering {link.get_text(strip=True)}")
                 curr_course_dict = {} # Dict for each course
 
                 # FIND SYLLABUS LINKS IN EACH COURSE PAGE
