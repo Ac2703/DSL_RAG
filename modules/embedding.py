@@ -259,9 +259,9 @@ class Embedder:
         # Build metadata filter
         metadata_filter = {}
         if sem_filter:
-            metadata_filter["course_sem"] = sem_filter
+            metadata_filter["metadata.course_sem"] = sem_filter
         if course_filter:
-            metadata_filter["course_num"] = course_filter
+            metadata_filter["metadata.course_num"] = course_filter
 
         if metadata_filter:
             qdrant_filter = Filter(
